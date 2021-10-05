@@ -22,7 +22,7 @@ sample_b,/path/to/short_read_1_sample_b,/path/to/short_read_2_sample_b,/path/to/
 ### Run
 ```
 nextflow run thanhleviet/nf-pilon \
---fofn /path/to/sample_sheet.csv \
+--sample_sheet /path/to/sample_sheet.csv \
 --iterations 10 \
 -profile conda
 ```
