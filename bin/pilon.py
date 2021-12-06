@@ -66,6 +66,7 @@ def tmpdir():
         yield dd
     finally:
         shutil.rmtree(dd)
+
 # bwa index ${contigs}
 
 # bwa mem -M -t ${task.cpus} ${contigs} ${short_reads} | samtools view -bS -| samtools sort > alignments.bam
@@ -141,6 +142,8 @@ def polish(r1, r2, contigs, iteration, threads, prefix):
     if tmpdir.exists():
         shutil.rmtree(str(tmpdir))
     
+    final_polished_fasta = "final.polished.fasta"
+
     tmpdir.mkdir()
 
     r1_path = Path(r1).absolute()
@@ -161,7 +164,6 @@ def polish(r1, r2, contigs, iteration, threads, prefix):
         Path("R1.fq.gz").symlink_to(r1_path)
         Path("R2.fq.gz").symlink_to(r2_path)
 
-
         j = 0
         changes = None
         for i in range(iteration):
@@ -177,14 +179,22 @@ def polish(r1, r2, contigs, iteration, threads, prefix):
             if len(changes_content) == 0:
                 logger.info(f"No more changes. Polishing should be stopped now.")
                 fix_header()
-                shutil.move("final.polished.fasta", _cwd)
                 break
             else:
                 changes_count = len(changes_content.split('\n'))
                 logger.info(f"Changes left: {changes_count}")
                 j += 1
+        
+        final_file = f"{_cwd}/{final_polished_fasta}"
+        if Path(final_polished_fasta).exists():
+            shutil.move(final_polished_fasta,
+                        final_file)
+        else:
+            shutil.move("polished_pilon.fasta",
+                        final_file)
+
         if (j==iteration) and changes is not None:
-            shutil.move(changes,_cwd)
+            shutil.move(changes, _cwd)
 
     _stop = timeit.default_timer()
     # shutil.rmtree(tmpdir)
